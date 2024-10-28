@@ -6,6 +6,7 @@ using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace RPGAdventure;
@@ -115,13 +116,8 @@ internal class GameLogic
 
     public static PlayerData LoadGame()
     {
-        string filePath1 = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Save1.txt");
-        string filePath2 = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Save2.txt");
-        string filePath3 = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Save3.txt");
-        string saveData1 = File.ReadAllText(filePath1);
-        string saveData2 = File.ReadAllText(filePath2);
-        string saveData3 = File.ReadAllText(filePath3);
         PlayerData? data = null;
+        string? filePath = null;
 
         bool picking = true;
         do
@@ -133,15 +129,17 @@ internal class GameLogic
             Console.WriteLine("[2]");
             Console.WriteLine("[3]");
 
-            switch (Console.ReadKey().Key)
+            char? input = Console.ReadKey().KeyChar;
+            switch (input)
             {
-                case ConsoleKey.D1: data = PlayerData.FromString(saveData1); picking = false; break;
-                case ConsoleKey.D2: data = PlayerData.FromString(saveData2); picking = false; break;
-                case ConsoleKey.D3: data = PlayerData.FromString(saveData3); picking = false; break;
+                case '1': filePath = ValidateFilepath(input.ToString()!); picking = false; break;
+                case '2': filePath = ValidateFilepath(input.ToString()!); picking = false; break;
+                case '3': filePath = ValidateFilepath(input.ToString()!); picking = false; break;
                 default: break;
             }
         } while (picking);
-        return data!;
+        string readData = File.ReadAllText(filePath!);
+        return data = JsonSerializer.Deserialize<PlayerData>(readData)!;
     }
 
     #endregion
@@ -162,17 +160,17 @@ internal class GameLogic
             Console.WriteLine("[3]");
             Console.WriteLine("Press any other key to return");
 
-            ConsoleKey input = Console.ReadKey().Key;
+            char input = Console.ReadKey().KeyChar;
 
             switch (input)
             {
-                case ConsoleKey.D1: chosenPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Save1.txt"); break;
-                case ConsoleKey.D2: chosenPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Save2.txt"); break;
-                case ConsoleKey.D3: chosenPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Save3.txt"); break;
+                case '1': chosenPath = ValidateFilepath(input.ToString()); break;
+                case '2': chosenPath = ValidateFilepath(input.ToString()); break;
+                case '3': chosenPath = ValidateFilepath(input.ToString()); break;
                 default: inSaveMenu = false; break;
             };
 
-            if (input == ConsoleKey.D1 || input == ConsoleKey.D2 || input == ConsoleKey.D3)
+            if (input == '1' || input == '2' || input == '3')
             {
                 Console.Clear();
                 Console.WriteLine($"Are you sure you want to overwrite this save file?\n");
@@ -183,7 +181,8 @@ internal class GameLogic
                 {
                     case ConsoleKey.D1:
                         inSaveMenu = false;
-                        File.WriteAllText(chosenPath!, data.ToString());
+                        string writtenData = JsonSerializer.Serialize(data);
+                        File.WriteAllText(ValidateFilepath(input.ToString()), writtenData);
                         Console.Clear();
                         Console.WriteLine("Your data was saved!");
                         Console.WriteLine(" ");
@@ -195,6 +194,14 @@ internal class GameLogic
                 }
             }
         } while (inSaveMenu);
+    }
+
+    public static string ValidateFilepath(string selection)
+    {
+        if (!File.Exists(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, $"Save{selection}.json")))
+             File.Create(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, $"Save{selection}.json"));
+
+        return Path.Combine(AppDomain.CurrentDomain.BaseDirectory, $"Save{selection}.json");
     }
 
     public static void InGameMenu(PlayerData data)
