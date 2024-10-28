@@ -8,7 +8,7 @@ namespace RPGAdventure;
 internal class EnemyData
 {
     public string? name { get; set; }
-    public int? level { get; set; }
+    public int level { get; set; }
     public int? vitality { get; set; }
     public int? strength { get; set; }
     public int? dexterity { get; set; }
@@ -20,7 +20,7 @@ internal class EnemyData
     public static EnemyData GenerateEnemy(PlayerData player)
     {
         string name = "Basic enemy";
-        int? level = player.level;
+        int level = player.level;
         int vitality = 5;
         int strength = 5;
         int dexterity = 5;

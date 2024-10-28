@@ -5,6 +5,7 @@ using System.IO.Pipes;
 using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
+using System.Numerics;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -17,8 +18,8 @@ internal class GameLogic
     private static Random SeedGen = new Random();
     private static int SeedGenerator()
     {
-        int min = (int)Math.Pow(10, 9 - 1);
-        int max = (int)Math.Pow(10, 9) - 1;
+        int min = (int)Math.Pow(6, 9 - 1);
+        int max = (int)Math.Pow(6, 9) - 1;
 
         return SeedGen.Next(min, max + 1);
     }
@@ -230,10 +231,10 @@ internal class GameLogic
     #endregion
 
     #region stat handling
-    static void ExperienceGain(PlayerData player, EnemyData enemy)
+    static int ExperienceGain(PlayerData player, EnemyData enemy)
     {
         double? xpToNextLvl = 10 * (player.level * 1.5);
-        int? gainedXP = 1 * enemy.level;
+        int gainedXP = 2 * enemy.level;
 
         player.experience = player.experience + gainedXP;
         if (player.experience >= xpToNextLvl)
@@ -242,6 +243,7 @@ internal class GameLogic
             player.experience = 0;
             StatGain(player);
         }
+        return gainedXP;
     }
 
     static void StatGain(PlayerData player)
@@ -280,6 +282,14 @@ internal class GameLogic
         }
     }
 
+    public static int Loot(PlayerData data)
+    {
+        string seedInput = $"{data.seed}{data.enemyCount}";
+        Random rng = new Random(Convert.ToInt32(seedInput));
+
+        return rng.Next(3, 10);
+    }
+
     static void CheckStats(PlayerData player)
     {
         Console.Clear();
@@ -289,8 +299,9 @@ internal class GameLogic
         Console.WriteLine($"STR: {player.strength}");
         Console.WriteLine($"DEX: {player.dexterity}");
         Console.WriteLine($"INT: {player.intelligence}");
-        Console.WriteLine($"SPE: {player.speed}");
-        Console.WriteLine(" ");
+        Console.WriteLine($"SPE: {player.speed}\n\n");
+        Console.WriteLine($"Gold: {player.inventory!.gold}");
+        Console.WriteLine($"Potions: {player.inventory.potions}\n");
         Console.WriteLine("Press any key to continue");
         Console.ReadKey();
     }
@@ -308,6 +319,20 @@ internal class GameLogic
         Console.WriteLine(" ");
         Console.WriteLine("Press any key to continue");
         Console.ReadKey();
+    }
+
+    public static void CombatOver(PlayerData player, EnemyData enemy)
+    {
+        int xpGained = ExperienceGain(player, enemy);
+        int goldReward = Loot(player);
+        player.inventory!.gold += goldReward;
+
+        Console.Clear();
+        Console.WriteLine($"You defeated {enemy.name}!\n\n" +
+            $"You gained {xpGained} XP and {goldReward} gold.\n\n" +
+            $"Press any key to continue.");
+        Console.ReadKey();
+        
     }
 
     #endregion
@@ -355,9 +380,10 @@ internal class GameLogic
                 inBattle = false;
             }
 
-            ExperienceGain(player, enemy);
-
         } while (inBattle);
+
+        CombatOver(player, enemy);
+
         return alive;
     }
     static void CombatOptions(PlayerData player, EnemyData enemy, int playerTurnSpeed, int enemyTurnSpeed, int playerTurnCount, int enemyTurnCount)
