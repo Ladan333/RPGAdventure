@@ -9,7 +9,7 @@ using System.Timers;
 namespace RPGAdventure;
 internal class StatAbilityCalcs
 {
-
+    #region base stats and attacks
     public static int TotalHealthPlayer(int vitality, int strength, int dexterity)
     {
         int totalHealth = Convert.ToInt32((vitality * 0.8) + (strength * 0.4) + (dexterity * 0.2));
@@ -47,4 +47,6 @@ internal class StatAbilityCalcs
         int turnSpeed = Convert.ToInt32(20 - enemy.speed * 0.5);
         return turnSpeed;
     }
+
+    #endregion
 }

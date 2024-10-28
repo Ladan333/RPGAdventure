@@ -213,12 +213,16 @@ internal class GameLogic
 
             switch (Console.ReadKey().Key)
             {
-                case ConsoleKey.D1: Encounter(data); break;
+                case ConsoleKey.D1: inMenu = Encounter(data); break;
                 case ConsoleKey.D2: CheckStats(data); break;
                 case ConsoleKey.D3: SaveGame(data); break;
             }
         } while (inMenu);
     }
+
+    #endregion
+
+    #region stat handling
     static void ExperienceGain(PlayerData player, EnemyData enemy)
     {
         double? xpToNextLvl = 10 * (player.level * 1.5);
@@ -303,10 +307,13 @@ internal class GameLogic
 
     #region Combat logic
 
-    static void Encounter(PlayerData player)
+    static bool Encounter(PlayerData player)
     {
+        bool alive = true;
         EnemyData enemy = EnemyData.GenerateEnemy(player);
 
+        int playerTurnCount = 1;
+        int enemyTurnCount = 1;
         int playerTimer = StatAbilityCalcs.SpeedCalc(player);
         int enemyTimer = StatAbilityCalcs.SpeedCalc(enemy);
 
@@ -322,18 +329,31 @@ internal class GameLogic
 
             if (playerTimer <= 0)
             {
-                CombatOptions(player, enemy, playerTimer, enemyTimer);
+                CombatOptions(player, enemy, playerTimer, enemyTimer, playerTurnCount, enemyTurnCount);
                 playerTimer = StatAbilityCalcs.SpeedCalc(player);
+                playerTurnCount++;
             }
             if (enemyTimer <= 0)
             {
                 EnemyTurn(player, enemy);
                 enemyTimer = StatAbilityCalcs.SpeedCalc(enemy);
+                enemyTurnCount++;
+            }
+            if (enemy.currentHealth <= 0)
+                inBattle = false;
+
+            if (player.currentHealth <= 0)
+            {
+                alive = false;
+                inBattle = false;
             }
 
+            ExperienceGain(player, enemy);
+
         } while (inBattle);
+        return alive;
     }
-    static void CombatOptions(PlayerData player, EnemyData enemy, int playerTurnSpeed, int enemyTurnSpeed)
+    static void CombatOptions(PlayerData player, EnemyData enemy, int playerTurnSpeed, int enemyTurnSpeed, int playerTurnCount, int enemyTurnCount)
     {
         bool pickingOption = true;
 
@@ -342,7 +362,7 @@ internal class GameLogic
             Console.Clear();
             Console.WriteLine($"{player.name} vs {enemy.name} [Enemy ID: {enemy.enemyID}]");
             Console.WriteLine($"Player health: {player.currentHealth}. Enemy health: {enemy.currentHealth}.\n" +
-                $"Player timer: {playerTurnSpeed}. Enemy timer: {enemyTurnSpeed}\n\n");
+                $"Player turn: {playerTurnCount}. Enemy turn: {enemyTurnCount}\n\n");
             Console.WriteLine("[1] Physical attack");
             Console.WriteLine("[2] Ranged attack");
             Console.WriteLine("[3] Magic attack");

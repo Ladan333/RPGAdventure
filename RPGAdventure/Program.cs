@@ -6,9 +6,14 @@ internal class Program
 {
     static void Main(string[] args)
     {
-        PlayerData gameData = new PlayerData();
-        gameData = MainMenu();
-        GameLogic.InGameMenu(gameData);
+        bool gameRunning = true;
+        do
+        {
+            PlayerData gameData = new PlayerData();
+            gameData = MainMenu();
+            GameLogic.InGameMenu(gameData);
+            GameOver();
+        } while (gameRunning);
     }
 
     static PlayerData MainMenu()
@@ -29,5 +34,13 @@ internal class Program
         }
 
         return gameData;
+    }
+
+    static void GameOver()
+    {
+        Console.Clear();
+        Console.WriteLine("You died! The game is over!\n\n" +
+            "Press any key to return to main menu.");
+        Console.ReadKey();
     }
 }
