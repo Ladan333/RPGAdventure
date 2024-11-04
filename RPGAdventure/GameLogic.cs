@@ -110,6 +110,7 @@ internal class GameLogic
             enemyCount = 0,
             itemCount = 0,
             currentHealth = StatAbilityCalcs.TotalHealthPlayer(vitality, strength, dexterity),
+            maxHealth = StatAbilityCalcs.TotalHealthPlayer(vitality, strength, dexterity),
         };
 
         return player;
@@ -216,14 +217,18 @@ internal class GameLogic
             Console.WriteLine("What do you want to do?");
             Console.WriteLine(" ");
             Console.WriteLine("[1] Continue");
-            Console.WriteLine("[2] Stats");
-            Console.WriteLine("[3] Save game");
+            Console.WriteLine("[2] Visit shop");
+            Console.WriteLine("[3] Inventory");
+            Console.WriteLine("[4] Stats");
+            Console.WriteLine("[5] Save game");
 
             switch (Console.ReadKey().Key)
             {
                 case ConsoleKey.D1: inMenu = Encounter(data); break;
-                case ConsoleKey.D2: CheckStats(data); break;
-                case ConsoleKey.D3: SaveGame(data); break;
+                case ConsoleKey.D2: Shop.ShopUI(data); break;
+                case ConsoleKey.D3: Inventory.CheckInventory(data); break;
+                case ConsoleKey.D4: CheckStats(data); break;
+                case ConsoleKey.D5: SaveGame(data); break;
             }
         } while (inMenu);
     }
@@ -280,6 +285,8 @@ internal class GameLogic
                 default: i++; break;
             }
         }
+
+        player.maxHealth = StatAbilityCalcs.TotalHealthPlayer(player);
     }
 
     public static int Loot(PlayerData data)
@@ -300,8 +307,6 @@ internal class GameLogic
         Console.WriteLine($"DEX: {player.dexterity}");
         Console.WriteLine($"INT: {player.intelligence}");
         Console.WriteLine($"SPE: {player.speed}\n\n");
-        Console.WriteLine($"Gold: {player.inventory!.gold}");
-        Console.WriteLine($"Potions: {player.inventory.potions}\n");
         Console.WriteLine("Press any key to continue");
         Console.ReadKey();
     }
@@ -343,59 +348,56 @@ internal class GameLogic
     {
         bool alive = true;
         EnemyData enemy = EnemyData.GenerateEnemy(player);
-
-        int playerTurnCount = 1;
-        int enemyTurnCount = 1;
-        int playerTimer = StatAbilityCalcs.SpeedCalc(player);
-        int enemyTimer = StatAbilityCalcs.SpeedCalc(enemy);
-
-        bool inBattle = true;
+        CombatInfo info = new CombatInfo();
+        info.playerTimer = StatAbilityCalcs.SpeedCalc(player);
+        info.enemyTimer = StatAbilityCalcs.SpeedCalc(enemy);
 
         do
         {
             do
             {
-                playerTimer--;
-                enemyTimer--;
-            } while ((playerTimer != 0) && (enemyTimer != 0));
+                info.playerTimer--;
+                info.enemyTimer--;
+            } while ((info.playerTimer != 0) && (info.enemyTimer != 0));
 
-            if (playerTimer <= 0)
+            if (info.playerTimer <= 0)
             {
-                CombatOptions(player, enemy, playerTimer, enemyTimer, playerTurnCount, enemyTurnCount);
-                playerTimer = StatAbilityCalcs.SpeedCalc(player);
-                playerTurnCount++;
+                CombatOptions(player, enemy, info);
+                info.playerTimer = StatAbilityCalcs.SpeedCalc(player);
+                info.playerTurnCount++;
             }
-            if (enemyTimer <= 0)
+            if (info.enemyTimer <= 0)
             {
-                EnemyTurn(player, enemy);
-                enemyTimer = StatAbilityCalcs.SpeedCalc(enemy);
-                enemyTurnCount++;
+                EnemyTurn(player, enemy, info);
+                info.enemyTimer = StatAbilityCalcs.SpeedCalc(enemy);
+                info.enemyTurnCount++;
             }
             if (enemy.currentHealth <= 0)
-                inBattle = false;
+                info.inCombat = false;
 
             if (player.currentHealth <= 0)
             {
                 alive = false;
-                inBattle = false;
+                info.inCombat = false;
             }
 
-        } while (inBattle);
+        } while (info.inCombat);
 
         CombatOver(player, enemy);
 
         return alive;
     }
-    static void CombatOptions(PlayerData player, EnemyData enemy, int playerTurnSpeed, int enemyTurnSpeed, int playerTurnCount, int enemyTurnCount)
+    static void CombatOptions(PlayerData player, EnemyData enemy, CombatInfo info)
     {
         bool pickingOption = true;
 
         do
         {
             Console.Clear();
+            CombatInfo.CombatLog(info);
             Console.WriteLine($"{player.name} vs {enemy.name} [Enemy ID: {enemy.enemyID}]");
             Console.WriteLine($"Player health: {player.currentHealth}. Enemy health: {enemy.currentHealth}.\n" +
-                $"Player turn: {playerTurnCount}. Enemy turn: {enemyTurnCount}\n\n");
+                $"Player turn: {info.playerTurnCount}. Enemy turn: {info.enemyTurnCount}\n\n");
             Console.WriteLine("[1] Physical attack");
             Console.WriteLine("[2] Ranged attack");
             Console.WriteLine("[3] Magic attack");
@@ -405,9 +407,9 @@ internal class GameLogic
 
             switch (Console.ReadKey().Key)
             {
-                case ConsoleKey.D1: StatAbilityCalcs.PhysicalAttackPlayer(player, enemy); pickingOption = false; break;
-                case ConsoleKey.D2: StatAbilityCalcs.RangedAttack(player, enemy); pickingOption = false; break;
-                case ConsoleKey.D3: StatAbilityCalcs.MagicAttack(player, enemy); pickingOption = false; break;
+                case ConsoleKey.D1: StatAbilityCalcs.PhysicalAttackPlayer(player, enemy, info); pickingOption = false; break;
+                case ConsoleKey.D2: StatAbilityCalcs.RangedAttackPlayer(player, enemy, info); pickingOption = false; break;
+                case ConsoleKey.D3: StatAbilityCalcs.MagicAttackPlayer(player, enemy, info); pickingOption = false; break;
                 case ConsoleKey.D4: pickingOption = false; break;
                 case ConsoleKey.D5: CheckStats(player); break;
                 case ConsoleKey.D6: CheckStats(enemy); break;
@@ -415,9 +417,15 @@ internal class GameLogic
             }
         } while (pickingOption);
     }
-    static void EnemyTurn(PlayerData player, EnemyData enemy)
+    static void EnemyTurn(PlayerData player, EnemyData enemy, CombatInfo info)
     {
-        StatAbilityCalcs.PhysicalAttackEnemy(player, enemy);
+        Random rng = new Random();
+        switch (rng.Next(1, 4))
+        {
+            case 1: StatAbilityCalcs.PhysicalAttackEnemy(player, enemy, info); break;
+            case 2: StatAbilityCalcs.RangedAttackEnemy(player, enemy, info); break;
+            case 3: StatAbilityCalcs.MagicAttackEnemy(player, enemy, info); break;
+        }
     }
     #endregion
 }

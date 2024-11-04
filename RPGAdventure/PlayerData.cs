@@ -21,5 +21,6 @@ internal class PlayerData
     public int? enemyCount { get; set; }
     public int? itemCount { get; set; }
     public int? currentHealth { get; set; }
+    public int maxHealth {  get; set; }
     public Inventory? inventory { get; set; } = new Inventory();
 }
