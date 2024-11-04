@@ -197,7 +197,6 @@ internal class GameLogic
             }
         } while (inSaveMenu);
     }
-
     public static string ValidateFilepath(string selection)
     {
         if (!File.Exists(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, $"Save{selection}.json")))
