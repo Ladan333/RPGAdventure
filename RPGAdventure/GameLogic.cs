@@ -133,12 +133,12 @@ internal class GameLogic
             Console.WriteLine("[2]");
             Console.WriteLine("[3]");
 
-            char? input = Console.ReadKey().KeyChar;
+            var input = Console.ReadKey().Key;
             switch (input)
             {
-                case '1': filePath = ValidateFilepath(input.ToString()!); picking = false; break;
-                case '2': filePath = ValidateFilepath(input.ToString()!); picking = false; break;
-                case '3': filePath = ValidateFilepath(input.ToString()!); picking = false; break;
+                case ConsoleKey.D1: filePath = ValidateFilepath(input); picking = false; break;
+                case ConsoleKey.D2: filePath = ValidateFilepath(input); picking = false; break;
+                case ConsoleKey.D3: filePath = ValidateFilepath(input); picking = false; break;
                 default: break;
             }
         } while (picking);
@@ -164,17 +164,16 @@ internal class GameLogic
             Console.WriteLine("[3]");
             Console.WriteLine("Press any other key to return");
 
-            char input = Console.ReadKey().KeyChar;
-
+            var input = Console.ReadKey().Key;
             switch (input)
             {
-                case '1': chosenPath = ValidateFilepath(input.ToString()); break;
-                case '2': chosenPath = ValidateFilepath(input.ToString()); break;
-                case '3': chosenPath = ValidateFilepath(input.ToString()); break;
+                case ConsoleKey.D1: chosenPath = ValidateFilepath(input); break;
+                case ConsoleKey.D2: chosenPath = ValidateFilepath(input); break;
+                case ConsoleKey.D3: chosenPath = ValidateFilepath(input); break;
                 default: inSaveMenu = false; break;
             };
 
-            if (input == '1' || input == '2' || input == '3')
+            if (input == ConsoleKey.D1 || input == ConsoleKey.D2 || input == ConsoleKey.D3)
             {
                 Console.Clear();
                 Console.WriteLine($"Are you sure you want to overwrite this save file?\n");
@@ -186,7 +185,7 @@ internal class GameLogic
                     case ConsoleKey.D1:
                         inSaveMenu = false;
                         string writtenData = JsonSerializer.Serialize(data);
-                        File.WriteAllText(ValidateFilepath(input.ToString()), writtenData);
+                        File.WriteAllText(ValidateFilepath(input), writtenData);
                         Console.Clear();
                         Console.WriteLine("Your data was saved!");
                         Console.WriteLine(" ");
@@ -199,12 +198,29 @@ internal class GameLogic
             }
         } while (inSaveMenu);
     }
-    public static string ValidateFilepath(string selection)
+    public static string ValidateFilepath(ConsoleKey selection)
     {
-        if (!File.Exists(@"..\..\..\Save{selection}.json"))
-             File.Create(@"..\..\..\Save{selection}.json");
-
-        return Path.Combine(@"..\..\..\Save{selection}.json");
+        string filePath = "None";
+        switch (selection)
+        {
+            case ConsoleKey.D1:
+                if (!File.Exists(@"..\..\..\Save1.json"))
+                    File.Create(@"..\..\..\Save1.json");
+                filePath = @"..\..\..\Save1.json";
+                break;
+            case ConsoleKey.D2:
+                if (!File.Exists(@"..\..\..\Save2.json"))
+                    File.Create(@"..\..\..\Save2.json");
+                filePath = @"..\..\..\Save2.json";
+                break;
+            case ConsoleKey.D3:
+                if (!File.Exists(@"..\..\..\Save3.json"))
+                    File.Create(@"..\..\..\Save3.json");
+                filePath = @"..\..\..\Save3.json";
+                break;
+            default: break;
+        }
+        return filePath;
     }
 
     public static void InGameMenu(PlayerData data)
