@@ -34,8 +34,10 @@ internal class GameLogic
         Console.WriteLine("Please enter your name:");
         string input = Console.ReadLine()!;
 
-        string filePath1 = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "RandomName1.txt");
-        string filePath2 = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "RandomName2.txt");
+        //string filePath1 = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "RandomName1.txt");
+        string filePath1 = @"..\..\..\RandomName1.txt";
+        //string filePath2 = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "RandomName2.txt");
+        string filePath2 = @"..\..\..\RandomName2.txt";
 
         string[] randomName1 = File.ReadAllLines(filePath1);
         string[] randomName2 = File.ReadAllLines(filePath2);
@@ -199,10 +201,10 @@ internal class GameLogic
     }
     public static string ValidateFilepath(string selection)
     {
-        if (!File.Exists(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, $"Save{selection}.json")))
-             File.Create(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, $"Save{selection}.json"));
+        if (!File.Exists(@"..\..\..\Save{selection}.json"))
+             File.Create(@"..\..\..\Save{selection}.json");
 
-        return Path.Combine(AppDomain.CurrentDomain.BaseDirectory, $"Save{selection}.json");
+        return Path.Combine(@"..\..\..\Save{selection}.json");
     }
 
     public static void InGameMenu(PlayerData data)
