@@ -46,19 +46,8 @@ internal class EnemyData
             }
         } while (points > 0);
 
-        int[] stats = new int[] { vitality, strength, dexterity, intelligence, speed };
-        Array.Sort(stats);
-        int highStat = stats[4];
-        if (highStat == vitality)
-            name = "Bulky goblin";
-        else if (highStat == strength)
-            name = "Aggressive goblin";
-        else if (highStat == dexterity)
-            name = "Nimble goblin";
-        else if (highStat == intelligence)
-            name = "Clever goblin";
-        else if (highStat == speed)
-            name = "Quick goblin";
+        string title = EnemyTitle(vitality, strength, dexterity, intelligence, speed);
+        name = $"{title} goblin";
 
         EnemyData enemy = new EnemyData()
         {
@@ -74,5 +63,26 @@ internal class EnemyData
         };
 
         return enemy;
+    }
+
+    private static string EnemyTitle(int _vit, int _str, int _dex, int _int, int _spe)
+    {
+        int[] stats = new int[] { _vit, _str, _dex, _int, _spe };
+        Array.Sort(stats);
+        string enemyTitle = "Default";
+        int highStat = stats[4];
+
+        if (highStat == _vit)
+            enemyTitle = "Bulky";
+        else if (highStat == _str)
+            enemyTitle = "Aggressive";
+        else if (highStat == _dex)
+            enemyTitle = "Nimble";
+        else if (highStat == _int)
+            enemyTitle = "Clever";
+        else if (highStat == _spe)
+            enemyTitle = "Quick";
+
+        return enemyTitle;
     }
 }
