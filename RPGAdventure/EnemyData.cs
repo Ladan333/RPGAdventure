@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Metadata;
+using System.Runtime.InteropServices.Marshalling;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -19,7 +21,7 @@ internal class EnemyData
 
     public static EnemyData GenerateEnemy(PlayerData player)
     {
-        string name = "Basic enemy";
+        string name = "Default";
         int level = player.level;
         int vitality = 5;
         int strength = 5;
@@ -44,6 +46,20 @@ internal class EnemyData
             }
         } while (points > 0);
 
+        int[] stats = new int[] { vitality, strength, dexterity, intelligence, speed };
+        Array.Sort(stats);
+        int highStat = stats[4];
+        if (highStat == vitality)
+            name = "Bulky goblin";
+        else if (highStat == strength)
+            name = "Aggressive goblin";
+        else if (highStat == dexterity)
+            name = "Nimble goblin";
+        else if (highStat == intelligence)
+            name = "Clever goblin";
+        else if (highStat == speed)
+            name = "Quick goblin";
+
         EnemyData enemy = new EnemyData()
         {
             name = name,
@@ -56,6 +72,7 @@ internal class EnemyData
             enemyID = enemyID,
             currentHealth = StatAbilityCalcs.TotalHealthEnemy(vitality, strength, dexterity),
         };
+
         return enemy;
     }
 }
