@@ -2,65 +2,56 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Metadata;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices.Marshalling;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace RPGAdventure;
 internal class EnemyData
 {
     public string? name { get; set; }
     public int level { get; set; }
-    public int? vitality { get; set; }
-    public int? strength { get; set; }
-    public int? dexterity { get; set; }
-    public int? intelligence { get; set; }
-    public int? speed { get; set; }
-    public int? enemyID { get; set; }
-    public int? currentHealth { get; set; }
+    public int vitality { get; set; }
+    public int strength { get; set; }
+    public int dexterity { get; set; }
+    public int intelligence { get; set; }
+    public int speed { get; set; }
+    public int enemyID { get; set; }
+    public int currentHealth { get; set; }
 
-    public static EnemyData GenerateEnemy(PlayerData player)
+    public static EnemyData GenerateEnemy(PlayerData player, string enemyRaw)
     {
-        string name = "Default";
-        int level = player.level;
-        int vitality = 5;
-        int strength = 5;
-        int dexterity = 5;
-        int intelligence = 5;
-        int speed = 5;
+        EnemyData? enemy = null;
+        string enemyName = enemyRaw;
+        string filePath = $"..\\..\\..\\EnemyBases\\{enemyName}Base.json";
+        string readData = File.ReadAllText(filePath!);
+        enemy = JsonSerializer.Deserialize<EnemyData>(readData)!;
+
         int? points = 8 + player.level;
         player.enemyCount++;
-        int enemyID = (player.seed + player.enemyCount) ?? default(int);
+        enemy.enemyID = (player.seed + player.enemyCount) ?? default(int);
 
-        Random enemyGen = new Random(enemyID);
+        Random enemyGen = new Random(enemy.enemyID);
 
         do
         {
             switch (enemyGen.Next(1, 6))
             {
-                case 1: vitality++; points--; break;
-                case 2: strength++; points--; break;
-                case 3: dexterity++; points--; break;
-                case 4: intelligence++; points--; break;
-                case 5: speed++; points--; break;
+                case 1: enemy.vitality++; points--; break;
+                case 2: enemy.strength++; points--; break;
+                case 3: enemy.dexterity++; points--; break;
+                case 4: enemy.intelligence++; points--; break;
+                case 5: enemy.speed++; points--; break;
             }
         } while (points > 0);
 
-        string title = EnemyTitle(vitality, strength, dexterity, intelligence, speed);
-        name = $"{title} goblin";
+        string title = EnemyTitle(enemy.vitality, enemy.strength, enemy.dexterity, enemy.intelligence, enemy.speed);
+        enemy.name = $"{title} {enemy.name}";
 
-        EnemyData enemy = new EnemyData()
-        {
-            name = name,
-            level = level,
-            vitality = vitality,
-            strength = strength,
-            dexterity = dexterity,
-            intelligence = intelligence,
-            speed = speed,
-            enemyID = enemyID,
-            currentHealth = StatAbilityCalcs.TotalHealthEnemy(vitality, strength, dexterity),
-        };
+        enemy.currentHealth = StatAbilityCalcs.TotalHealthEnemy(enemy.vitality, enemy.strength, enemy.dexterity);
 
         return enemy;
     }

@@ -136,9 +136,9 @@ internal class GameLogic
             var input = Console.ReadKey().Key;
             switch (input)
             {
-                case ConsoleKey.D1: filePath = ValidateFilepath(input); picking = false; break;
-                case ConsoleKey.D2: filePath = ValidateFilepath(input); picking = false; break;
-                case ConsoleKey.D3: filePath = ValidateFilepath(input); picking = false; break;
+                case ConsoleKey.D1: filePath = ValidateSaveFilepath(input); picking = false; break;
+                case ConsoleKey.D2: filePath = ValidateSaveFilepath(input); picking = false; break;
+                case ConsoleKey.D3: filePath = ValidateSaveFilepath(input); picking = false; break;
                 default: break;
             }
         } while (picking);
@@ -167,9 +167,9 @@ internal class GameLogic
             var input = Console.ReadKey().Key;
             switch (input)
             {
-                case ConsoleKey.D1: chosenPath = ValidateFilepath(input); break;
-                case ConsoleKey.D2: chosenPath = ValidateFilepath(input); break;
-                case ConsoleKey.D3: chosenPath = ValidateFilepath(input); break;
+                case ConsoleKey.D1: chosenPath = ValidateSaveFilepath(input); break;
+                case ConsoleKey.D2: chosenPath = ValidateSaveFilepath(input); break;
+                case ConsoleKey.D3: chosenPath = ValidateSaveFilepath(input); break;
                 default: inSaveMenu = false; break;
             };
 
@@ -185,7 +185,7 @@ internal class GameLogic
                     case ConsoleKey.D1:
                         inSaveMenu = false;
                         string writtenData = JsonSerializer.Serialize(data);
-                        File.WriteAllText(ValidateFilepath(input), writtenData);
+                        File.WriteAllText(ValidateSaveFilepath(input), writtenData);
                         Console.Clear();
                         Console.WriteLine("Your data was saved!");
                         Console.WriteLine(" ");
@@ -198,7 +198,7 @@ internal class GameLogic
             }
         } while (inSaveMenu);
     }
-    public static string ValidateFilepath(ConsoleKey selection)
+    public static string ValidateSaveFilepath(ConsoleKey selection)
     {
         string filePath = "None";
         switch (selection)
@@ -363,8 +363,9 @@ internal class GameLogic
 
     static bool Encounter(PlayerData player)
     {
+        string enemyName = "Goblin";
         bool alive = true;
-        EnemyData enemy = EnemyData.GenerateEnemy(player);
+        EnemyData enemy = EnemyData.GenerateEnemy(player, enemyName);
         CombatInfo info = new CombatInfo();
         info.playerTimer = StatAbilityCalcs.SpeedCalc(player);
         info.enemyTimer = StatAbilityCalcs.SpeedCalc(enemy);
